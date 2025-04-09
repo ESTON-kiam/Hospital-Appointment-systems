@@ -1,3 +1,4 @@
+# admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, Doctor, Patient, Department, Appointment, Prescription
@@ -11,6 +12,10 @@ class CustomUserAdmin(UserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_doctor', 'is_patient', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
+
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
 class DoctorAdmin(admin.ModelAdmin):
     list_display = ('user', 'department', 'specialization', 'consultation_fee')
@@ -31,9 +36,11 @@ class PrescriptionAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
     search_fields = ('appointment__patient__user__first_name', 'appointment__patient__user__last_name')
 
+# Register models - order matters for foreign key relationships
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Department)
+admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(Appointment, AppointmentAdmin)
 admin.site.register(Prescription, PrescriptionAdmin)
+

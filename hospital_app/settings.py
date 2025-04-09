@@ -46,7 +46,15 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'hospital_app.urls'
-
+AUTH_USER_MODEL = 'appointments.User'
+AUTHENTICATION_BACKENDS = [
+    'appointments.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+# Authentication Settings
+LOGIN_URL = 'login'  # Name of your login view
+LOGIN_REDIRECT_URL = 'home'  # Name of your home view
+LOGOUT_REDIRECT_URL = 'home'  # Name of your home view
 
 TEMPLATES = [
     {

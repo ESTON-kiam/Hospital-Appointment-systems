@@ -1,3 +1,4 @@
+# models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -13,13 +14,13 @@ class User(AbstractUser):
     country = models.CharField(max_length=50, blank=True)
     pincode = models.CharField(max_length=10, blank=True)
 
-    # Add these to resolve the clash
+    # Add these to resolve the clash with AbstractUser
     groups = models.ManyToManyField(
         'auth.Group',
         verbose_name='groups',
         blank=True,
         help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name="appointments_user_groups",  # Changed
+        related_name="appointments_user_groups",
         related_query_name="appointments_user",
     )
     user_permissions = models.ManyToManyField(
@@ -27,7 +28,7 @@ class User(AbstractUser):
         verbose_name='user permissions',
         blank=True,
         help_text='Specific permissions for this user.',
-        related_name="appointments_user_permissions",  # Changed
+        related_name="appointments_user_permissions",
         related_query_name="appointments_user",
     )
 
@@ -45,18 +46,17 @@ class Department(models.Model):
 
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    specialization = models.CharField(max_length=100)
-    experience = models.CharField(max_length=100)
-    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='doctors', null=True, blank=True)
+    specialization = models.CharField(max_length=100, blank=True, null=True)
+    experience = models.CharField(max_length=100, blank=True, null=True)
+    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     bio = models.TextField(blank=True)
-    available_days = models.CharField(max_length=100)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    available_days = models.CharField(max_length=100, blank=True, null=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
 
     def __str__(self):
         return f'Dr. {self.user.get_full_name()}'
-
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -76,8 +76,8 @@ class Appointment(models.Model):
         ('completed', 'Completed'),
     ]
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='doctor_appointments')
     date = models.DateField()
     time = models.TimeField()
     reason = models.TextField()
@@ -90,7 +90,7 @@ class Appointment(models.Model):
 
 
 class Prescription(models.Model):
-    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='prescriptions')
     medicine = models.TextField()
     dosage = models.TextField()
     instructions = models.TextField()

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.utils import timezone
+
 from .models import User, Doctor, Patient, Appointment, Prescription, Department
 from .forms import (UserRegisterForm, DoctorProfileForm, PatientProfileForm,
                     AppointmentForm, PrescriptionForm)
@@ -22,26 +24,41 @@ def register(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user_type = request.POST.get('user_type')
+            user_type = request.POST.get('user_type', 'patient')
 
-            if user_type == 'doctor':
-                user.is_doctor = True
-            else:
-                user.is_patient = True
+            # Set user type
+            user.is_doctor = (user_type == 'doctor')
+            user.is_patient = (user_type == 'patient')
 
+            # Save with proper password hashing
+            user.set_password(form.cleaned_data['password1'])
             user.save()
 
-            # Create profile based on user type
+            # Create profile
             if user.is_doctor:
-                Doctor.objects.create(user=user)
+                # Add default values for required fields
+                default_time = timezone.now().time()
+                Doctor.objects.create(
+                    user=user,
+                    specialization="General",
+                    experience="0 years",
+                    consultation_fee=0.00,
+                    available_days="Monday-Friday",
+                    start_time=default_time,
+                    end_time=default_time
+                )
             else:
                 Patient.objects.create(user=user)
 
-            messages.success(request, 'Account created successfully! Please log in.')
+            messages.success(request, 'Registration successful! Please login.')
             return redirect('login')
     else:
         form = UserRegisterForm()
     return render(request, 'appointments/register.html', {'form': form})
+
+
+def auth_login(request, user):
+    pass
 
 
 def user_login(request):
@@ -52,13 +69,20 @@ def user_login(request):
 
         if user is not None:
             login(request, user)
+            # Handle 'next' redirect
+            next_url = request.POST.get('next', '')
+            if next_url:
+                return redirect(next_url)
+            # Redirect based on user type
             if user.is_doctor:
                 return redirect('doctor_dashboard')
-            else:
-                return redirect('patient_dashboard')
+            return redirect('patient_dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
-    return render(request, 'appointments/login.html')
+
+    # Get the 'next' parameter from GET request
+    next_url = request.GET.get('next', '')
+    return render(request, 'appointments/login.html', {'next': next_url})
 
 
 @login_required
@@ -203,11 +227,9 @@ def update_appointment_status(request, pk, status):
     return redirect('appointment_detail', pk=pk)
 
 
-
 def home(request):
     if request.user.is_authenticated:
         if request.user.is_doctor:
             return redirect('doctor_dashboard')
-        else:
-            return redirect('patient_dashboard')
+        return redirect('patient_dashboard')
     return redirect('login')
