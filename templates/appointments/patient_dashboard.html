@@ -1,0 +1,75 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Patient Profile</h5>
+            </div>
+            <div class="card-body">
+                <h4>{{ user.get_full_name }}</h4>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Phone:</strong> {{ user.phone }}</p>
+                <p><strong>Blood Group:</strong> {{ user.patient.blood_group|default:"Not specified" }}</p>
+                <a href="{% url 'patient_profile' %}" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Book Appointment</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'create_appointment' %}" class="btn btn-primary">New Appointment</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">My Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Doctor</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                    <tr>
+                                        <td>{{ appointment.date }}</td>
+                                        <td>Dr. {{ appointment.doctor.user.get_full_name }}</td>
+                                        <td>{{ appointment.time }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No appointments found. <a href="{% url 'create_appointment' %}">Book your first appointment</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

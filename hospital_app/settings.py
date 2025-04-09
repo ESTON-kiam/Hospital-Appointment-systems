@@ -1,5 +1,4 @@
 
-
 from pathlib import Path
 
 from django.conf.global_settings import STATICFILES_DIRS
@@ -21,6 +20,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -30,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'appointments.apps.AppointmentsConfig',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +46,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'hospital_app.urls'
+
 
 TEMPLATES = [
     {

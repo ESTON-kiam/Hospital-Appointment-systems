@@ -1,0 +1,86 @@
+{% extends 'appointments/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Appointment Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Appointment Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Date:</strong> {{ appointment.date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.time }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if user.is_doctor %}
+                            <p><strong>Patient:</strong> {{ appointment.patient }}</p>
+                        {% else %}
+                            <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.user.get_full_name }}</p>
+                            <p><strong>Specialization:</strong> {{ appointment.doctor.specialization }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <p><strong>Reason for Appointment:</strong></p>
+                    <p>{{ appointment.reason }}</p>
+                </div>
+                
+                {% if user.is_doctor %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'update_appointment_status' appointment.id 'confirmed' %}" class="btn btn-success">Confirm</a>
+                        <a href="{% url 'update_appointment_status' appointment.id 'cancelled' %}" class="btn btn-danger">Cancel</a>
+                        <a href="{% url 'update_appointment_status' appointment.id 'completed' %}" class="btn btn-primary">Mark as Completed</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if user.is_doctor %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Add Prescription</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ prescription_form|crispy }}
+                        <button type="submit" class="btn btn-primary">Add Prescription</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Prescriptions</h5>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                    {% for prescription in prescriptions %}
+                        <div class="mb-3 p-3 border rounded">
+                            <p><strong>Medicine:</strong> {{ prescription.medicine }}</p>
+                            <p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
+                            <p><strong>Instructions:</strong> {{ prescription.instructions }}</p>
+                            <p class="text-muted small">Prescribed on {{ prescription.created_at }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No prescriptions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

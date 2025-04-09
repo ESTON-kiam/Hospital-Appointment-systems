@@ -13,6 +13,27 @@ class User(AbstractUser):
     country = models.CharField(max_length=50, blank=True)
     pincode = models.CharField(max_length=10, blank=True)
 
+    # Add these to resolve the clash
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+        related_name="appointments_user_groups",  # Changed
+        related_query_name="appointments_user",
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name="appointments_user_permissions",  # Changed
+        related_query_name="appointments_user",
+    )
+
+    def __str__(self):
+        return self.username
+
 
 class Department(models.Model):
     name = models.CharField(max_length=100)

@@ -201,3 +201,13 @@ def update_appointment_status(request, pk, status):
         messages.success(request, f'Appointment status updated to {status}.')
 
     return redirect('appointment_detail', pk=pk)
+
+
+
+def home(request):
+    if request.user.is_authenticated:
+        if request.user.is_doctor:
+            return redirect('doctor_dashboard')
+        else:
+            return redirect('patient_dashboard')
+    return redirect('login')
